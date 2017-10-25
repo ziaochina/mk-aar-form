@@ -12,27 +12,20 @@ export default class action {
     }
 
     fieldChange = async (fieldPath, value, checkFn) => {
-        await this.check([{ path: fieldPath, value, checkFn }])
+        await this.check([{ path: fieldPath, value, checkFn }], true)
     }
 
-    /*
-    [{
-            path: 'data.form.name', value: 'name', checkFn: ()=>{}
-        }, {
-            path: 'data.form.code', value: 'code', checkFn: ()=>{}
-        }]
-    */
     check = async (option, needSaveFieldValue) => {
         if (!option || !utils._.isArray(option))
             return
 
         var checkResults = []
 
-        for (var o of option) {
+        for (let child of option) {
             let checkResult
 
-            if (o.checkFn) {
-                checkResult = await o.checkFn({ path: o.path, value: o.value })
+            if (child.checkFn) {
+                checkResult = await child.checkFn({ path: child.path, value: child.value })
             }
 
             if (checkResult) {
@@ -40,22 +33,25 @@ export default class action {
             }
         }
 
-        var hasError = false, json
+        var hasError = false, json = {}
         if (needSaveFieldValue) {
-            json = option.map(o => ({ [o.path]: o.value }))
+            option.forEach(o => {
+                json[o.path] = o.value
+            })
         }
 
         if (checkResults.length > 0) {
             checkResults.forEach(o => {
                 json[o.errorPath] = o.message
+                if (o.message)
+                    hasError = true
             })
-            if(o.message)
-                hasError = true
         }
 
-        if(json){
+        if (json) {
             this.metaAction.sfs(json)
         }
+        return !hasError
     }
 
 }
