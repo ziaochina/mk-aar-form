@@ -12,10 +12,10 @@ export default class action {
     }
 
     fieldChange = async (fieldPath, value, checkFn) => {
-        await this.check([{ path: fieldPath, value, checkFn }], true)
+        await this.check([{ path: fieldPath, value }], checkFn, true)
     }
 
-    check = async (option, needSaveFieldValue) => {
+    check = async (option, checkFn, needSaveFieldValue) => {
         if (!option || !utils._.isArray(option))
             return
 
@@ -24,8 +24,8 @@ export default class action {
         for (let child of option) {
             let checkResult
 
-            if (child.checkFn) {
-                checkResult = await child.checkFn({ path: child.path, value: child.value })
+            if (checkFn) {
+                checkResult = await checkFn({ path: child.path, value: child.value })
             }
 
             if (checkResult) {
